@@ -1,19 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boolzapp - Very Important Messages</title>
+    <title>Boolzap - Homepage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment-with-locales.min.js"
+        integrity="sha512-LGXaggshOkD/at6PFNcp2V2unf9LzFq6LE+sChH7ceMTDP0g2kn6Vxwgg7wkPP7AAtX+lmPqPdxB47A0Nz0cMQ=="
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="css/style.css">
-    <!-- development version, includes helpful console warnings -->
-    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
-    <!-- production version, optimized for size and speed -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2"></script> -->
+    <link rel="shortcut icon" href="https://www.boolean.careers/favicon.ico" type="image/x-icon">
 </head>
-<body>
-    
 
-    <script src="js/main.js"></script>
+<body>
+    <div id="app">
+
+        <div v-if="delDisplay" class="confirmation_mex">
+            <div class="delete_box">
+                <p>Eliminare messaggio?</p>
+                <div class="buttons">
+                    <a @click="deleteMexUndo" href="#">Annulla</a>
+                    <a @click="deleteMexConfirm" href="#">Elimina per me</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="background">
+
+            <div class="top_background"></div>
+
+            <div class="container">
+
+                <div class="left_container">
+
+                    <section class="header">
+                        <div class="user_box">
+                            <img :src="'img/'+personalId.avatar" :alt="personalId.name">
+                            <p> {{personalId.name}} </p>
+                        </div>
+                        <div class="user_icons">
+                            <i class="fas fa-circle-notch"></i>
+                            <i class="fas fa-comment-alt"></i>
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </section>
+
+                    <section class="alert_mex">
+                        <div class="alert_bell">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
+                        <div class="alert_text">
+                            <p>Ricevi notifiche di nuovi messaggi</p>
+                            <a href="#">Attiva notifiche desktop</a>
+                        </div>
+                    </section>
+
+                    <section class="search_bar_container">
+                        <div class="search_bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" v-model="searchText" @keyup="filterChat"
+                                placeholder="Cerca o inizia una nuova chat">
+                        </div>
+                    </section>
+
+                    <section class="chat_users">
+
+                        <div @mouseover="mouseOver(element, index)" @mouseleave="element.hover = false"
+                            @click="selectContact(index)" v-for="(element, index) in contacts"
+                            v-if="element.visible != false" class="user_box" :class="classSwitch(element, index)">
+                            <div class="img_user_box">
+                                <img :src="'img/'+element.avatar" :alt="element.name">
+                            </div>
+                            <div class="txt_user_box">
+                                <div class="username">
+                                    <div class="name">{{element.name}}</div>
+                                    <div class="time">
+                                        {{element.messages[element.messages.length-1].date}}
+                                    </div>
+                                </div>
+                                <div class="chat_preview">
+                                    {{element.messages[element.messages.length-1].text}}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div v-if="(counter < 0)" class="start_container">
+                    <img src="img/schermata_iniziale.png" alt="Schermata Iniziale">
+                    <h2>Mantieni il telefono connesso</h2>
+                    <p>WhatsApp si collega al tuo telefono per sincronizzare i messaggi. Per ridurre l'utilizzo dei
+                        dati, collega il telefono al Wi-Fi.</p>
+                    <div class="divider"></div>
+                    <p><i class="fas fa-laptop"></i>WhatsApp è disponibile per Windows. <a href="#">Scaricala qui.</a>
+                    </p>
+                </div>
+                <div v-else class="right_container">
+
+                    <section class="header">
+                        <div class="user_box">
+                            <img :src="'img/'+ contacts[counter].avatar" :alt="contacts[counter].name">
+                            <div class="user_text">
+                                <p>{{contacts[counter].name}}</p>
+                                <p>{{contacts[counter].access}}</p>
+                            </div>
+                        </div>
+                        <div class="user_icons">
+                            <i class="fas fa-search"></i>
+                            <i class="fas fa-ellipsis-v"></i>
+                        </div>
+                    </section>
+
+                    <section class="chat_box">
+
+                        <div class="day_box">
+                            <div class="day center">
+                                <p>oggi</p>
+                            </div>
+                        </div>
+
+                        <div class="box">
+                            <div v-for="(key, index) in contacts[counter].messages" :class="key.status" class="message">
+                                <p>{{key.text}}</p>
+                                <div class="info_box">
+                                    <i @click="selectMex(index)" class="fas fa-chevron-down"></i>
+                                    <div class="info_menu" v-if="index == counterMex"
+                                        :class="(contacts[counter].messages[counterMex].status == 'received')?'right':''">
+                                        <ul>
+                                            <li @click="deleteMex(index)" v-for="(element, index) in infoMenu"><a
+                                                    href="#">{{element}}</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="time_box">
+                                    <p>{{key.date}}</p>
+                                    <i class="fas fa-check"></i>
+                                    <div class="spunte"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="footer_box">
+                        <i class="far fa-grin-wink"></i>
+                        <i class="fas fa-paperclip"></i>
+                        <input @keyup.enter="addMex" type="text" v-model="userText" placeholder="Scrivi un messaggio">
+                        <i @click="addMex" :class="(userText == 0)?'fas fa-microphone':'fas fa-paper-plane'"></i>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js" charset="utf-8"></script>
 </body>
 </html>
